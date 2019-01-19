@@ -6,20 +6,31 @@ import (
   "os"
   "regexp"
   "strings"
-
+  "io/ioutil"
+  "gopkg.in/yaml.v2"
   "github.com/nlopes/slack"
 )
 
-func getenv(name string) string {
-  v := os.Getenv(name)
-  if v == "" {
-    panic("missing required environment variable " + name)
-  }
-  return v
+// Structs from config file
+type Config struct {
+  Token string `yaml:"token"` //Slack Bot Token
 }
 
 func main() {
-  token := getenv("SLACKTOKEN")
+  configFile := "config.yaml"
+  yamlFile, err := ioutil.ReadFile(configFile)
+  if err != nil {
+      panic(err)
+  }
+
+  var config Config
+
+  err = yaml.Unmarshal(yamlFile, &config)
+  if err != nil {
+      panic(err)
+  }
+
+  token := config.Token
   api := slack.New(token,
 		slack.OptionDebug(true),
 		slack.OptionLog(log.New(os.Stdout, "kayvin-bot: ", log.Lshortfile|log.LstdFlags)),
